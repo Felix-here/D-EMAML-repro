@@ -8,7 +8,7 @@ AMLWorld 的五次独立运行要在现有 RTX 4090 上做。代码用 GitHub �
 
 ```bash
 cd /root/autodl-tmp
-git clone https://github.com/<你的用户名>/D-EMAML-repro.git
+git clone https://github.com/Felix-here/D-EMAML-repro.git
 cd D-EMAML-repro
 ls
 ```
@@ -18,7 +18,7 @@ ls
 如果仓库是私有的，先在 GitHub 建一个有 `repo` 权限的 Personal Access Token，然后：
 
 ```bash
-git clone https://<TOKEN>@github.com/<你的用户名>/D-EMAML-repro.git
+git clone https://<TOKEN>@github.com/Felix-here/D-EMAML-repro.git
 ```
 
 不要把 token 写进会提交的文件里。

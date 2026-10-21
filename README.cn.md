@@ -24,7 +24,7 @@ cd D:\GDUF_Recording\AI反洗钱paper\D-EMAML-repro
 
 ```bash
 cd /root/autodl-tmp
-git clone https://github.com/<你的用户名>/D-EMAML-repro.git
+git clone https://github.com/Felix-here/D-EMAML-repro.git
 cd D-EMAML-repro
 bash scripts/bootstrap_cloud.sh
 source .venv/bin/activate

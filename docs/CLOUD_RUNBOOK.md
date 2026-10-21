@@ -9,7 +9,7 @@ GitHub. Leave `HI-Small_Trans.csv` on the data disk; never push it.
 
 ```bash
 cd /root/autodl-tmp
-git clone https://github.com/<your-username>/D-EMAML-repro.git
+git clone https://github.com/Felix-here/D-EMAML-repro.git
 cd D-EMAML-repro
 ```
 
