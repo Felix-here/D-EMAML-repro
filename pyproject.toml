@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "demaml-repro"
+version = "0.1.0"
+description = "Independent, auditable reimplementation of D-EMAML for AMLWorld"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26,<2",
+  "pandas>=2.2,<3",
+  "pyarrow>=15,<20",
+  "PyYAML>=6,<7",
+  "scikit-learn>=1.4,<1.6",
+  "tqdm>=4.66,<5",
+  "psutil>=6,<8",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "ruff>=0.6,<1"]
+
+[project.scripts]
+demaml = "demaml.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/demaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+ignore = ["UP037", "RUF007", "BLE001"]

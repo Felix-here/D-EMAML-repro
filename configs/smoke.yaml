@@ -1,0 +1,26 @@
+data:
+  csv: /root/autodl-tmp/D-EMAML/data/AMLWorld/raw/HI-Small_Trans.csv
+  work_dir: /root/autodl-tmp/D-EMAML-repro/artifacts
+  smoke: true
+  smoke_negatives: 20000
+motif:
+  xi: 0
+  eta: 6
+  dmax: 64
+  max_motifs_per_edge: 32
+model:
+  name: demgnn
+  hidden: 64
+  layers: 2
+  dropout: 0.1
+  use_sairr: true
+  use_type_bias: true
+train:
+  seed: 1
+  epochs: 2
+  batch_size: 64
+  learning_rate: 0.0001
+  weight_decay: 0.0
+  neighbors: [20, 20]
+  checkpoint_every: 1
+  resume: true
