@@ -40,16 +40,16 @@ git pull
 Do not commit the CSV, `.venv`, `artifacts/`, or checkpoints.
 `scripts/upload.ps1` remains only as an SCP fallback.
 
-## Cloud quick start
+## Comparison setup
 
-On a GPU session, run the same command each time. It performs one stage and stops:
+Edit `configs/experiment.yaml` only. The framework is documented in
+`docs/FRAMEWORK.cn.md`.
 
 ```bash
-cd /root/autodl-tmp/D-EMAML-repro
-bash scripts/session.sh
+demaml plan --config configs/experiment.yaml
+demaml prepare --config configs/experiment.yaml
+demaml compare --config configs/experiment.yaml
 ```
-
-Chinese instructions: [README.cn.md](README.cn.md).
 
 All generated files go below `artifacts/` on AutoDL's persistent data disk.
 Read `docs/ASSUMPTIONS.md` (or `docs/ASSUMPTIONS.cn.md`) before interpreting

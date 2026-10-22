@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Thin wrapper around configs/experiment.yaml. Edit that file, not this script.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -7,72 +8,30 @@ if [[ -f .venv/bin/activate ]]; then
   source .venv/bin/activate
 fi
 
-STAGE="${1:-help}"
-CSV="${CSV:-/root/autodl-tmp/D-EMAML/data/AMLWorld/raw/HI-Small_Trans.csv}"
+CONFIG="${CONFIG:-configs/experiment.yaml}"
+STAGE="${1:-plan}"
 FREE_GB="$(df -Pk /root/autodl-tmp | awk 'NR==2 {print int($4/1024/1024)}')"
 if (( FREE_GB < 15 )); then
-  echo "Refusing to run: only ${FREE_GB} GiB free on data disk." >&2
+  echo "数据盘只剩 ${FREE_GB} GiB。" >&2
   exit 2
 fi
 
-mkdir -p artifacts/logs
-STAMP="$(date +%Y%m%d-%H%M%S)"
-log_run() {
-  local name="$1"
-  shift
-  local log="artifacts/logs/${STAMP}-${name}.log"
-  echo "Free data disk: ${FREE_GB} GiB"
-  nvidia-smi || true
-  echo "Logging to ${log}"
-  "$@" 2>&1 | tee "$log"
-}
-
 case "$STAGE" in
-  audit)
-    log_run audit demaml audit-data --csv "$CSV" --output artifacts/logs/data-audit.json
-    ;;
-  smoke)
-    log_run smoke demaml run --config configs/smoke.yaml
+  plan)
+    demaml plan --config "$CONFIG"
     ;;
   prepare)
-    log_run prepare demaml prepare --config configs/amlworld_demgnn.yaml
+    demaml prepare --config "$CONFIG"
     ;;
-  gate)
-    log_run gate demaml run --config configs/amlworld_gate.yaml
+  compare)
+    demaml compare --config "$CONFIG"
     ;;
-  gat)
-    log_run gat demaml run --config configs/amlworld_gat.yaml
+  run)
+    demaml run --config "$CONFIG" --model "${2:?请写模型标签，例如 gat}"
     ;;
-  demgnn)
-    log_run demgnn demaml run --config configs/amlworld_demgnn.yaml
-    ;;
-  demgnn-many)
-    log_run demgnn-many demaml run-many --config configs/amlworld_demgnn.yaml --seeds 1 2 3 4 5
-    ;;
-  summarize)
-    shopt -s nullglob
-    files=(artifacts/runs/demgnn/seed-*/metrics.json)
-    if (( ${#files[@]} == 0 )); then
-      echo "No D-EMGNN metrics found under artifacts/runs/demgnn/" >&2
-      exit 1
-    fi
-    log_run summarize demaml summarize "${files[@]}"
-    ;;
-  help|*)
-    cat <<'EOF'
-Prefer: bash scripts/session.sh
-It runs exactly one stage and then stops.
-Manual stages: bash scripts/run_cloud.sh <stage>
-  audit         verify HI-Small bytes/rows/positives
-  smoke         cheap 2-epoch run with checkpointing
-  prepare       full motif generation, no training
-  gate          original-graph GAT reference
-  gat           motif-graph GAT baseline
-  demgnn        D-EMGNN single seed
-  demgnn-many   D-EMGNN seeds 1-5
-  summarize     mean/std versus paper Table 2
-Stop if smoke fails, motif counts look impossible, or a single epoch OOMs.
-If cache exceeds 35 GiB, inspect artifacts/cache-full/prepare.json before training.
-EOF
+  *)
+    echo "用法: bash scripts/run_cloud.sh plan|prepare|compare|run <模型标签>" >&2
+    echo "参数都在 configs/experiment.yaml" >&2
+    exit 1
     ;;
 esac

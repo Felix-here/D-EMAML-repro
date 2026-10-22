@@ -28,10 +28,7 @@
 
 ## 配置
 
-- `configs/smoke.yaml`：2 个 epoch 的廉价路径，保留全部正例
-- `configs/amlworld_gate.yaml`：重实现的原交易图 GAT
-- `configs/amlworld_gat.yaml`：motif 图 GAT 基线
-- `configs/amlworld_demgnn.yaml`：hidden=256、2 层、邻居 `[100,100]`、50 epoch、`xi=0`、`eta=6`、batch=16
+- `configs/experiment.yaml`：共用数据和训练设置；各模型在 `models` 下分别开关和调参
 
 每次运行都会把解析后的配置复制到 `config.json`。
 

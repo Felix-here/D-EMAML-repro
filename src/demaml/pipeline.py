@@ -7,7 +7,7 @@ from pathlib import Path
 
 import torch
 
-from .config import RunConfig
+from .config import RunConfig, run_label
 from .data import ProcessedData, audit_csv, preprocess_csv
 from .motif_graph import MotifGraph, build_motif_graph
 from .motifs import MotifData, build_motifs, motif_statistics
@@ -137,7 +137,7 @@ def prepare_artifacts(config: RunConfig, run_dir: Path | None = None) -> dict:
 
 def run_pipeline(config: RunConfig) -> dict:
     root = Path(config.data.work_dir).resolve()
-    run_dir = root / "runs" / config.model.name / f"seed-{config.train.seed}"
+    run_dir = root / "runs" / run_label(config) / f"seed-{config.train.seed}"
     run_dir.mkdir(parents=True, exist_ok=True)
     (run_dir / "config.json").write_text(
         json.dumps(config.to_dict(), indent=2), encoding="utf-8"
@@ -162,6 +162,8 @@ def run_pipeline(config: RunConfig) -> dict:
         result = train_motif_model(config, original, motifs, graph, run_dir)
     prepared.setdefault("timings_seconds", {})["train_evaluate"] = time.perf_counter() - started
     result.update(prepared)
+    result["model_tag"] = run_label(config)
+    result["architecture"] = config.model.name
     (run_dir / "result.json").write_text(
         json.dumps(result, indent=2, default=str), encoding="utf-8"
     )

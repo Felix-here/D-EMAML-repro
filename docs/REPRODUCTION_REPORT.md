@@ -38,11 +38,8 @@ See `DATA_AUDIT.md`.
 
 Formal settings:
 
-- `configs/smoke.yaml`: 2-epoch cheap path, all positives kept
-- `configs/amlworld_gate.yaml`: reconstructed original-graph GAT
-- `configs/amlworld_gat.yaml`: motif-graph GAT baseline
-- `configs/amlworld_demgnn.yaml`: hidden=256, 2 layers, neighbors `[100,100]`,
-  50 epochs, `xi=0`, `eta=6`, batch=16
+- `configs/experiment.yaml`: shared data and training settings, with one block
+  per model for comparison runs
 
 Every run copies its resolved settings to `config.json`.
 

@@ -1,0 +1,81 @@
+# 对比实验只改这个文件。
+# enabled 为 true 的模型会进入同一次对比；false 只保留在清单里，不会跑。
+# 数据、基序、训练是共用的。某个模型需要不同参数时，写在它自己的那一块。
+
+data:
+  csv: /root/autodl-tmp/D-EMAML/data/AMLWorld/raw/HI-Small_Trans.csv
+  work_dir: /root/autodl-tmp/D-EMAML-repro/artifacts
+  smoke: false          # true 时只抽一小部分交易，结果写到 artifacts/smoke
+  smoke_negatives: 20000
+
+motif:
+  xi: 0
+  eta: 6
+  dmax: 256             # 论文没有给出；账户交易过多时均匀保留这么多笔
+  max_motifs_per_edge: 128
+
+train:
+  seeds: [1]            # 论文五次运行改成 [1, 2, 3, 4, 5]
+  epochs: 50
+  batch_size: 16
+  learning_rate: 0.0001
+  weight_decay: 0.0
+  neighbors: [100, 100]
+  checkpoint_every: 1
+  resume: true
+
+models:
+  demgnn:
+    enabled: true
+    name: demgnn        # 架构名，不要改；上面的 demgnn 是结果目录名
+    hidden: 256
+    layers: 2
+    dropout: 0.1
+    use_sairr: true
+    use_type_bias: true
+
+  demgnn_no_sairr:
+    enabled: false
+    name: demgnn
+    hidden: 256
+    layers: 2
+    dropout: 0.1
+    use_sairr: false
+    use_type_bias: true
+
+  demgnn_no_type_bias:
+    enabled: false
+    name: demgnn
+    hidden: 256
+    layers: 2
+    dropout: 0.1
+    use_sairr: true
+    use_type_bias: false
+
+  gat:
+    enabled: true
+    name: gat
+    hidden: 256
+    layers: 2
+    dropout: 0.1
+
+  gin:
+    enabled: false
+    name: gin
+    hidden: 256
+    layers: 2
+    dropout: 0.1
+
+  gcn:
+    enabled: false
+    name: gcn
+    hidden: 256
+    layers: 2
+    dropout: 0.1
+
+  gate:
+    enabled: false
+    name: gate          # 原交易图上的 GAT，不建基序图
+    hidden: 256
+    layers: 2
+    dropout: 0.1
