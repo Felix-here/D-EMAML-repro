@@ -82,8 +82,10 @@ def prepare_artifacts(config: RunConfig, run_dir: Path | None = None) -> dict:
     )
     started = time.perf_counter()
     if motif_path.exists():
+        print(f"loading existing motifs from {motif_path}", flush=True)
         motifs = MotifData.load(motif_path)
     else:
+        print(f"building motifs into {motif_path}", flush=True)
         motifs = build_motifs(
             original,
             motif_path,
@@ -98,8 +100,10 @@ def prepare_artifacts(config: RunConfig, run_dir: Path | None = None) -> dict:
     graph_path = cache / f"motif-graph-cap{config.motif.max_motifs_per_edge}.pt"
     started = time.perf_counter()
     if graph_path.exists():
+        print(f"loading existing motif graph from {graph_path}", flush=True)
         graph = MotifGraph.load(graph_path)
     else:
+        print(f"building motif graph into {graph_path}", flush=True)
         graph = build_motif_graph(
             motifs,
             graph_path,

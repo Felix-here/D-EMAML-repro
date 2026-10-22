@@ -12,7 +12,7 @@ motif:
   xi: 0
   eta: 6
   dmax: 256             # 论文没有给出；账户交易过多时均匀保留这么多笔
-  max_motifs_per_edge: 128
+  max_motifs_per_edge: 8    # 128 会把共享边展开成过大的团，120GB 内存会被系统杀掉
 
 train:
   seeds: [1]            # 论文五次运行改成 [1, 2, 3, 4, 5]
