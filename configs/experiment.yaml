@@ -5,8 +5,8 @@
 data:
   csv: /root/autodl-tmp/D-EMAML/data/AMLWorld/raw/HI-Small_Trans.csv
   work_dir: /root/autodl-tmp/D-EMAML-repro/artifacts
-  smoke: false          # true 时只抽一小部分交易，结果写到 artifacts/smoke
-  smoke_negatives: 20000
+  smoke: true           # 保留全部洗钱交易，并抽样正常交易；结果写到 artifacts/smoke
+  smoke_negatives: 280000
 
 motif:
   xi: 0
@@ -16,7 +16,7 @@ motif:
 
 train:
   seeds: [1]            # 论文五次运行改成 [1, 2, 3, 4, 5]
-  epochs: 50
+  epochs: 14            # 四个模型约 10 小时；论文设置是 50 轮
   batch_size: 16
   learning_rate: 0.0001
   weight_decay: 0.0
@@ -60,14 +60,14 @@ models:
     dropout: 0.1
 
   gin:
-    enabled: false
+    enabled: true
     name: gin
     hidden: 256
     layers: 2
     dropout: 0.1
 
   gcn:
-    enabled: false
+    enabled: true
     name: gcn
     hidden: 256
     layers: 2

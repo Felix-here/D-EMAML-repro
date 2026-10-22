@@ -114,21 +114,65 @@ def _run_seeds(config, seeds: list[int]) -> list[dict]:
     return results
 
 
+def write_comparison_report(work_dir: Path, tags: list[str], seeds: list[int]) -> dict:
+    """Refresh the comparison table. Finished models stay visible if a later run stops."""
+    rows = []
+    lines = [
+        f"{'model':<8} {'seed':>4} {'best_epoch':>10} {'F1':>8} "
+        f"{'AUPRC':>8} {'Precision':>9} {'Recall':>8} {'coverage':>8} status"
+    ]
+    for tag in tags:
+        for seed in seeds:
+            path = work_dir / "runs" / tag / f"seed-{seed}" / "metrics.json"
+            if not path.exists():
+                rows.append({"model": tag, "seed": seed, "status": "pending"})
+                lines.append(f"{tag:<8} {seed:>4} {'':>10} {'':>8} {'':>8} {'':>9} {'':>8} {'':>8} pending")
+                continue
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            test = saved["test"]
+            best_epoch = int(saved["best_epoch"]) + 1
+            row = {
+                "model": tag,
+                "seed": seed,
+                "status": "done",
+                "best_epoch": best_epoch,
+                "f1": test["f1"],
+                "auprc": test["auprc"],
+                "precision": test["precision"],
+                "recall": test["recall"],
+                "coverage": test.get("coverage"),
+                "threshold": test.get("threshold"),
+                "metrics_file": str(path),
+            }
+            rows.append(row)
+            lines.append(
+                f"{tag:<8} {seed:>4} {best_epoch:>10} {test['f1']:>8.4f} "
+                f"{test['auprc']:>8.4f} {test['precision']:>9.4f} {test['recall']:>8.4f} "
+                f"{test.get('coverage', 0):>8.4f} done"
+            )
+    report = {"models": rows, "table": "\n".join(lines)}
+    runs = work_dir / "runs"
+    runs.mkdir(parents=True, exist_ok=True)
+    (runs / "comparison.json").write_text(
+        json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    (runs / "comparison.txt").write_text(report["table"] + "\n", encoding="utf-8")
+    print("\n" + report["table"] + "\n", flush=True)
+    print(f"comparison table: {runs / 'comparison.txt'}", flush=True)
+    return report
+
+
 def _compare(path: str) -> dict:
     runs, seeds = load_runs(path, enabled_only=True)
     if not runs:
         raise ValueError(f"{path} 没有 enabled: true 的模型")
-    comparison = {"seeds": seeds, "models": {}}
+    tags = [run_label(config) for config in runs]
+    work_dir = Path(runs[0].data.work_dir)
+    report = write_comparison_report(work_dir, tags, seeds)
     for config in runs:
         _run_seeds(config, seeds)
-        tag = run_label(config)
-        summary_path = Path(config.data.work_dir) / "runs" / tag / "summary.json"
-        comparison["models"][tag] = json.loads(summary_path.read_text(encoding="utf-8"))
-    output = Path(runs[0].data.work_dir) / "runs" / "comparison.json"
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(comparison, indent=2), encoding="utf-8")
-    comparison["file"] = str(output)
-    return comparison
+        report = write_comparison_report(work_dir, tags, seeds)
+    return report
 
 
 def main() -> None:

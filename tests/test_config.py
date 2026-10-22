@@ -1,3 +1,6 @@
+import json
+
+from demaml.cli import write_comparison_report
 from demaml.config import load_config, load_runs, run_label
 
 
@@ -45,3 +48,30 @@ models:
     gat = load_config(path, model="small_gat")
     assert gat.model.name == "gat"
     assert gat.model.hidden == 8
+
+
+def test_comparison_report_keeps_finished_models_visible(tmp_path):
+    metrics = tmp_path / "runs" / "demgnn" / "seed-1"
+    metrics.mkdir(parents=True)
+    (metrics / "metrics.json").write_text(
+        json.dumps(
+            {
+                "best_epoch": 3,
+                "test": {
+                    "f1": 0.2,
+                    "auprc": 0.1,
+                    "precision": 0.3,
+                    "recall": 0.15,
+                    "coverage": 0.8,
+                    "threshold": 0.4,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    report = write_comparison_report(tmp_path, ["demgnn", "gat"], [1])
+    text = (tmp_path / "runs" / "comparison.txt").read_text(encoding="utf-8")
+    assert "demgnn" in text and "done" in text
+    assert "gat" in text and "pending" in text
+    assert report["models"][0]["best_epoch"] == 4
+    assert report["models"][1]["status"] == "pending"
