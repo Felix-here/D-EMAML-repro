@@ -5,7 +5,6 @@
 ```bash
 cd /root/autodl-tmp/D-EMAML-repro
 bash scripts/bootstrap_cloud.sh
-source .venv/bin/activate
 demaml plan --config configs/experiment.yaml
 ```
 

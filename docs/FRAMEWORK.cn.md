@@ -35,8 +35,9 @@ HI-Small CSV
 ```bash
 cd /root/autodl-tmp/D-EMAML-repro
 bash scripts/bootstrap_cloud.sh
-source .venv/bin/activate
 ```
+
+装到镜像自带的 Python 里，不要使用 `uv`，也不要 `source .venv/bin/activate`。
 
 先看这次会跑哪些模型，不消耗训练：
 

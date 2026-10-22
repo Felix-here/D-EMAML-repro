@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
+# Install into the image Python. Do not create a uv environment: that can replace
+# the CUDA build of torch shipped with the AutoDL image.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY all_proxy || true
+export OMP_NUM_THREADS="${OMP_NUM_THREADS:-1}"
+if ! [[ "$OMP_NUM_THREADS" =~ ^[0-9]+$ ]]; then
+  export OMP_NUM_THREADS=1
+fi
+INDEX="${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}"
 
 python - <<'PY'
 import torch
@@ -11,20 +19,12 @@ assert torch.cuda.is_available()
 print("system torch:", torch.__version__, torch.cuda.get_device_name(0))
 PY
 
-python -m pip install -q uv
-uv venv --python "$(command -v python)" --system-site-packages .venv
-uv pip install --python .venv/bin/python -r requirements-cloud.txt
-uv pip install --python .venv/bin/python --editable .
+python -m pip install -r requirements-cloud.txt -i "$INDEX"
+python -m pip install -e . -i "$INDEX"
 
-# NeighborLoader needs one of the accelerated PyG sampling backends.
-uv pip install --python .venv/bin/python \
-  pyg_lib torch_scatter torch_sparse \
-  --find-links https://data.pyg.org/whl/torch-2.3.0+cu121.html
-
-.venv/bin/python - <<'PY'
+python - <<'PY'
 import torch
 import torch_geometric
-import pyg_lib
 import demaml
 print("torch:", torch.__version__)
 print("pyg:", torch_geometric.__version__)
@@ -34,4 +34,4 @@ x = torch.randn(1024, 1024, device="cuda")
 print("cuda smoke:", float(x.mean()))
 PY
 
-echo "Activate with: source .venv/bin/activate"
+echo "Installed into the system Python. Use demaml directly; do not activate .venv."
