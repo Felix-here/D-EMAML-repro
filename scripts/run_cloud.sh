@@ -60,7 +60,9 @@ case "$STAGE" in
     ;;
   help|*)
     cat <<'EOF'
-Usage: bash scripts/run_cloud.sh <stage>
+Prefer: bash scripts/session.sh
+It runs exactly one stage and then stops.
+Manual stages: bash scripts/run_cloud.sh <stage>
   audit         verify HI-Small bytes/rows/positives
   smoke         cheap 2-epoch run with checkpointing
   prepare       full motif generation, no training

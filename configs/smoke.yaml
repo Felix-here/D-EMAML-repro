@@ -1,6 +1,6 @@
 data:
   csv: /root/autodl-tmp/D-EMAML/data/AMLWorld/raw/HI-Small_Trans.csv
-  work_dir: /root/autodl-tmp/D-EMAML-repro/artifacts
+  work_dir: /root/autodl-tmp/D-EMAML-repro/artifacts/smoke
   smoke: true
   smoke_negatives: 20000
 motif:

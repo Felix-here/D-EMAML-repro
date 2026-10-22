@@ -42,21 +42,14 @@ Do not commit the CSV, `.venv`, `artifacts/`, or checkpoints.
 
 ## Cloud quick start
 
-The raw file is expected at:
-
-`/root/autodl-tmp/D-EMAML/data/AMLWorld/raw/HI-Small_Trans.csv`
-
-After cloning, follow [docs/CLOUD_RUNBOOK.md](docs/CLOUD_RUNBOOK.md) or the
-Chinese copy [docs/CLOUD_RUNBOOK.cn.md](docs/CLOUD_RUNBOOK.cn.md):
+On a GPU session, run the same command each time. It performs one stage and stops:
 
 ```bash
-bash scripts/run_cloud.sh smoke
-bash scripts/run_cloud.sh prepare
-bash scripts/run_cloud.sh gat
-bash scripts/run_cloud.sh demgnn
-bash scripts/run_cloud.sh demgnn-many
-bash scripts/run_cloud.sh summarize
+cd /root/autodl-tmp/D-EMAML-repro
+bash scripts/session.sh
 ```
+
+Chinese instructions: [README.cn.md](README.cn.md).
 
 All generated files go below `artifacts/` on AutoDL's persistent data disk.
 Read `docs/ASSUMPTIONS.md` (or `docs/ASSUMPTIONS.cn.md`) before interpreting
