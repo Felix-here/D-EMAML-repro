@@ -69,9 +69,11 @@ def test_comparison_report_keeps_finished_models_visible(tmp_path):
         ),
         encoding="utf-8",
     )
-    report = write_comparison_report(tmp_path, ["demgnn", "gat"], [1])
+    report = write_comparison_report(tmp_path, ["demgnn", "gat"], [1], total_seconds=3661)
     text = (tmp_path / "runs" / "comparison.txt").read_text(encoding="utf-8")
     assert "demgnn" in text and "done" in text
     assert "gat" in text and "pending" in text
+    assert "total_runtime_hours 1.017" in text
     assert report["models"][0]["best_epoch"] == 4
     assert report["models"][1]["status"] == "pending"
+    assert report["total_seconds"] == 3661

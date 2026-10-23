@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import random
+import time
 from pathlib import Path
 
 import numpy as np
@@ -157,6 +158,7 @@ def train_motif_model(
     run_dir: str | Path,
 ) -> dict:
     set_seed(config.train.seed)
+    started = time.perf_counter()
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -244,10 +246,13 @@ def train_motif_model(
     val = _edge_metrics(val_logits, val_ids, motifs, original, 1, None)
     test_logits, test_ids = infer_split(model, graph_data, motifs, 2, config, device)
     test = _edge_metrics(test_logits, test_ids, motifs, original, 2, val["threshold"])
+    elapsed = time.perf_counter() - started
     result = {
         "validation": val,
         "test": test,
         "best_epoch": best["epoch"],
+        "elapsed_seconds": elapsed,
+        "elapsed_hours": elapsed / 3600,
         "peak_resources": peak,
         "final_resources": snapshot(run_dir),
         "sampler": "neighbor" if graph.num_nodes > FULL_GRAPH_NODE_LIMIT else "full",
@@ -262,6 +267,7 @@ def train_original_model(
     run_dir: str | Path,
 ) -> dict:
     set_seed(config.train.seed)
+    started = time.perf_counter()
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -335,6 +341,13 @@ def train_original_model(
     test = binary_metrics(original.y[test_mask].numpy(), scores[test_mask].numpy(), val["threshold"])
     test["coverage"] = 1.0
     val["coverage"] = 1.0
-    result = {"validation": val, "test": test, "best_epoch": best["epoch"]}
+    elapsed = time.perf_counter() - started
+    result = {
+        "validation": val,
+        "test": test,
+        "best_epoch": best["epoch"],
+        "elapsed_seconds": elapsed,
+        "elapsed_hours": elapsed / 3600,
+    }
     save_metrics(result, run_dir / "metrics.json")
     return result

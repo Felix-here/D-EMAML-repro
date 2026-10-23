@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from dataclasses import replace
 from pathlib import Path
 
@@ -114,11 +115,16 @@ def _run_seeds(config, seeds: list[int]) -> list[dict]:
     return results
 
 
-def write_comparison_report(work_dir: Path, tags: list[str], seeds: list[int]) -> dict:
+def write_comparison_report(
+    work_dir: Path,
+    tags: list[str],
+    seeds: list[int],
+    total_seconds: float | None = None,
+) -> dict:
     """Refresh the comparison table. Finished models stay visible if a later run stops."""
     rows = []
     lines = [
-        f"{'model':<8} {'seed':>4} {'best_epoch':>10} {'F1':>8} "
+        f"{'model':<8} {'seed':>4} {'best_epoch':>10} {'hours':>8} {'F1':>8} "
         f"{'AUPRC':>8} {'Precision':>9} {'Recall':>8} {'coverage':>8} status"
     ]
     for tag in tags:
@@ -126,16 +132,22 @@ def write_comparison_report(work_dir: Path, tags: list[str], seeds: list[int]) -
             path = work_dir / "runs" / tag / f"seed-{seed}" / "metrics.json"
             if not path.exists():
                 rows.append({"model": tag, "seed": seed, "status": "pending"})
-                lines.append(f"{tag:<8} {seed:>4} {'':>10} {'':>8} {'':>8} {'':>9} {'':>8} {'':>8} pending")
+                lines.append(
+                    f"{tag:<8} {seed:>4} {'':>10} {'':>8} {'':>8} {'':>8} {'':>9} {'':>8} {'':>8} pending"
+                )
                 continue
             saved = json.loads(path.read_text(encoding="utf-8"))
             test = saved["test"]
             best_epoch = int(saved["best_epoch"]) + 1
+            elapsed = saved.get("elapsed_seconds")
+            hours = None if elapsed is None else float(elapsed) / 3600
             row = {
                 "model": tag,
                 "seed": seed,
                 "status": "done",
                 "best_epoch": best_epoch,
+                "elapsed_seconds": elapsed,
+                "elapsed_hours": hours,
                 "f1": test["f1"],
                 "auprc": test["auprc"],
                 "precision": test["precision"],
@@ -145,12 +157,19 @@ def write_comparison_report(work_dir: Path, tags: list[str], seeds: list[int]) -
                 "metrics_file": str(path),
             }
             rows.append(row)
+            hours_text = "" if hours is None else f"{hours:.2f}"
             lines.append(
-                f"{tag:<8} {seed:>4} {best_epoch:>10} {test['f1']:>8.4f} "
+                f"{tag:<8} {seed:>4} {best_epoch:>10} {hours_text:>8} {test['f1']:>8.4f} "
                 f"{test['auprc']:>8.4f} {test['precision']:>9.4f} {test['recall']:>8.4f} "
                 f"{test.get('coverage', 0):>8.4f} done"
             )
     report = {"models": rows, "table": "\n".join(lines)}
+    if total_seconds is not None:
+        report["total_seconds"] = total_seconds
+        report["total_hours"] = total_seconds / 3600
+        lines.append(f"total_runtime_hours {total_seconds / 3600:.3f}")
+        lines.append(f"total_runtime_seconds {total_seconds:.1f}")
+        report["table"] = "\n".join(lines)
     runs = work_dir / "runs"
     runs.mkdir(parents=True, exist_ok=True)
     (runs / "comparison.json").write_text(
@@ -168,10 +187,13 @@ def _compare(path: str) -> dict:
         raise ValueError(f"{path} 没有 enabled: true 的模型")
     tags = [run_label(config) for config in runs]
     work_dir = Path(runs[0].data.work_dir)
-    report = write_comparison_report(work_dir, tags, seeds)
+    started = time.perf_counter()
+    report = write_comparison_report(work_dir, tags, seeds, 0.0)
     for config in runs:
         _run_seeds(config, seeds)
-        report = write_comparison_report(work_dir, tags, seeds)
+        report = write_comparison_report(work_dir, tags, seeds, time.perf_counter() - started)
+    total = time.perf_counter() - started
+    print(f"total runtime: {total / 3600:.3f} hours ({total:.1f} seconds)", flush=True)
     return report
 
 
